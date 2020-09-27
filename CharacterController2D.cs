@@ -26,7 +26,8 @@ public class CharacterController2D : MonoBehaviour
 	private Rigidbody2D m_Rigidbody2D;
 	private bool m_FacingRight = true;  // For determining which way the player is currently facing.
 	private Vector3 m_Velocity = Vector3.zero;
-	
+	//private bool m_isNearLedge;                                                //To Be added later as it is an extra feature. This feature is the ledge grab mechanism. For now lets get everything else working
+	private bool m_isNearWall;        //For Determining if the player is next to a wall or not. 
 
 	[Header("Events")]
 	[Space]
@@ -73,11 +74,16 @@ public class CharacterController2D : MonoBehaviour
 		//This line prevents the raycast from detecting the player's box colliders
 		Physics2D.queriesStartInColliders = false;
 		//We use a raycast to detect the presence of a wall and if found we can perform a wall slide function.
-		RaycastHit2D raycasts = Physics2D.Raycast(m_WallCheck.position, Vector2.right * transform.localScale.x, m_Distance);
-		if (!m_Grounded && raycasts.collider != null && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
+		m_isNearWall = Physics2D.Raycast(m_WallCheck.position, Vector2.right * transform.localScale.x, m_Distance);
+		
+		//This raycast detects if we are near a ledge and sets the m_isNearLedge bool to true if it detects a ledge.
+		//m_isNearLedge = Physics2D.Raycast(m_LedgeCheck.position, Vector2.right*transform.localScale.x, m_Distance);
+		
+		if (!m_Grounded && m_isNearWall && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
 		{
 			m_Rigidbody2D.velocity = new Vector2(0, m_SlideSpeed);
-		}        
+		}
+		
 		//We use raycasts again to detect to presence of a ledge in order to perform a ledge graab functionality.
 		//Ledge grab fn code
 
