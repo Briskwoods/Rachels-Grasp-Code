@@ -69,13 +69,19 @@ public class CharacterController2D : MonoBehaviour
 			}
 			
 		}
-		Physics2D.queriesStartInColliders = false;
-		RaycastHit2D raycasts = Physics2D.Raycast(m_WallCheck.position, Vector2.right * transform.localScale.x, m_Distance);
 
+		//This line prevents the raycast from detecting the player's box colliders
+		Physics2D.queriesStartInColliders = false;
+		//We use a raycast to detect the presence of a wall and if found we can perform a wall slide function.
+		RaycastHit2D raycasts = Physics2D.Raycast(m_WallCheck.position, Vector2.right * transform.localScale.x, m_Distance);
 		if (!m_Grounded && raycasts.collider != null && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
 		{
 			m_Rigidbody2D.velocity = new Vector2(0, m_SlideSpeed);
 		}        
+		//We use raycasts again to detect to presence of a ledge in order to perform a ledge graab functionality.
+		//Ledge grab fn code
+
+
 	}
 
 
