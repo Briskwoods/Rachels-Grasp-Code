@@ -4,10 +4,9 @@ using UnityEngine.Events;
 public class CharacterController2D : MonoBehaviour
 {
 	[SerializeField] private float m_Distance = 0.4f;                           // Raycast distance to check for wall.
-	[SerializeField] private float m_SlideGravity = 2.5f;                           // Raycast distance to check for wall.
-	[SerializeField] private float m_SlideSpeed = -3f;                         // Wall Slide Speed.
+	[SerializeField] private float m_SlideSpeed = -3f ;                         // Wall Slide Speed.
 	[SerializeField] private float m_JumpForce = 400f;							// Amount of force added when the player jumps.
-	[SerializeField] private float m_dashSpeed = 60f;                           // Speed to multiply movement by for dash.
+	[SerializeField] private float m_dashSpeed;		                            // Speed to multiply movement by for dash.
 	[SerializeField] private float m_crouchDashSpeed = 300f;                    // Speed to multiply movement by for crouch dash.
 	[SerializeField] private float m_normalDashSpeed;	                        // Used to set the dash speed variable back to normal after crouch dash(roll)
 	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			// Amount of maxSpeed applied to crouching movement. 1 = 100%
@@ -17,17 +16,21 @@ public class CharacterController2D : MonoBehaviour
 	[SerializeField] private Transform m_GroundCheck;							// A position marking where to check if the player is grounded.
 	[SerializeField] private Transform m_CeilingCheck;                          // A position marking where to check for ceilings
 	[SerializeField] private Transform m_WallCheck;                             // A position marking where to check if the player is near a wall.
-	[SerializeField] private Transform m_LedgeCheck;                           // A position marking where to check if the player is near a ledge.
+	[SerializeField] private Transform m_LedgeCheck;                            // A position marking where to check if the player is near a ledge.
 	[SerializeField] private Collider2D m_CrouchDisableCollider;                // A collider that will be disabled when crouching
 
+	public Animator animator;                                                   //Used in animating the wall slide functionality	
+	public SpriteRenderer spriteRenderer;										//Used in flipping the sprite for the wall slide animation
+
+
 	const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
-	private bool m_Grounded;            // Whether or not the player is grounded.
-	const float k_CeilingRadius = .2f; // Radius of the overlap circle to determine if the player can stand up
+	private bool m_Grounded;			// Whether or not the player is grounded.
+	const float k_CeilingRadius = .2f;	// Radius of the overlap circle to determine if the player can stand up
 	private Rigidbody2D m_Rigidbody2D;
 	private bool m_FacingRight = true;  // For determining which way the player is currently facing.
 	private Vector3 m_Velocity = Vector3.zero;
-	//private bool m_isNearLedge;                                                //To Be added later as it is an extra feature. This feature is the ledge grab mechanism. For now lets get everything else working
-	private bool m_isNearWall;        //For Determining if the player is next to a wall or not. 
+	//private bool m_isNearLedge;		//To Be added later as it is an extra feature. This feature is the ledge grab mechanism. For now lets get everything else working
+	private bool m_isNearWall;			//For Determining if the player is next to a wall or not. 
 
 	[Header("Events")]
 	[Space]
@@ -40,16 +43,16 @@ public class CharacterController2D : MonoBehaviour
 	public BoolEvent OnCrouchEvent;
 	private bool m_wasCrouching = false;
 
-	private void Awake()
+    private void Awake()
 	{
 		m_Rigidbody2D = GetComponent<Rigidbody2D>();
+		m_normalDashSpeed += m_dashSpeed;
 
 		if (OnLandEvent == null)
 			OnLandEvent = new UnityEvent();
 
 		if (OnCrouchEvent == null)
 			OnCrouchEvent = new BoolEvent();
-		m_normalDashSpeed += m_dashSpeed;
 	}
 
 	private void FixedUpdate()
@@ -81,9 +84,15 @@ public class CharacterController2D : MonoBehaviour
 		
 		if (!m_Grounded && m_isNearWall && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
 		{
+			animator.SetBool("isWallSliding",true);
 			m_Rigidbody2D.velocity = new Vector2(0, m_SlideSpeed);
+			spriteRenderer.flipX = true;
 		}
-		
+        else
+        {
+			animator.SetBool("isWallSliding", false);
+			spriteRenderer.flipX = false;
+		}
 		//We use raycasts again to detect to presence of a ledge in order to perform a ledge graab functionality.
 		//Ledge grab fn code
 
@@ -144,7 +153,7 @@ public class CharacterController2D : MonoBehaviour
 			Vector3 targetVelocity = new Vector2(move * 10f, m_Rigidbody2D.velocity.y);
 			// And then smoothing it out and applying it to the character
 			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
-
+			
 			// If the input is moving the player right and the player is facing left...
 			if (move > 0 && !m_FacingRight)
 			{
@@ -172,9 +181,8 @@ public class CharacterController2D : MonoBehaviour
 			Vector3 targetVelocity = new Vector2(move * m_dashSpeed, m_Rigidbody2D.velocity.x);
 			// And then smoothing it out and applying it to the character
 			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
-
-		}
-		
+        }
+		animator.SetFloat("DashSpeed", Mathf.Abs(m_Rigidbody2D.velocity.x));
 	}
 
 
