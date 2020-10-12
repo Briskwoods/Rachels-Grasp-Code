@@ -3,20 +3,30 @@ using UnityEngine.Events;
 
 public class CharacterController2D : MonoBehaviour
 {
+	[SerializeField] private int m_attackDamage = 40;							// How much damage each attack deals
+
+	[SerializeField] private float m_attackRange = 0.5f;                        // Used to set the weapon attack range
 	[SerializeField] private float m_Distance = 0.4f;                           // Raycast distance to check for wall.
 	[SerializeField] private float m_SlideSpeed = -3f ;                         // Wall Slide Speed.
 	[SerializeField] private float m_JumpForce = 400f;							// Amount of force added when the player jumps.
 	[SerializeField] private float m_dashSpeed;		                            // Speed to multiply movement by for dash.
 	[SerializeField] private float m_crouchDashSpeed = 300f;                    // Speed to multiply movement by for crouch dash.
-	[SerializeField] private float m_normalDashSpeed;	                        // Used to set the dash speed variable back to normal after crouch dash(roll)
+	[SerializeField] private float m_normalDashSpeed;                           // Used to set the dash speed variable back to normal after crouch dash(roll)
 	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			// Amount of maxSpeed applied to crouching movement. 1 = 100%
-	[Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;	// How much to smooth out the movement
+	[Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;  // How much to smooth out the movement
+
+
 	[SerializeField] private bool m_AirControl = false;							// Whether or not a player can steer while jumping;
+	
 	[SerializeField] private LayerMask m_WhatIsGround;							// A mask determining what is ground to the character
+	[SerializeField] private LayerMask m_EnemyLayers;			                // Used in detecting enemies
+	
 	[SerializeField] private Transform m_GroundCheck;							// A position marking where to check if the player is grounded.
 	[SerializeField] private Transform m_CeilingCheck;                          // A position marking where to check for ceilings
 	[SerializeField] private Transform m_WallCheck;                             // A position marking where to check if the player is near a wall.
 	[SerializeField] private Transform m_LedgeCheck;                            // A position marking where to check if the player is near a ledge.
+	[SerializeField] private Transform m_AttackPoint;                           // A position marking where the player attacks land.
+	
 	[SerializeField] private Collider2D m_CrouchDisableCollider;                // A collider that will be disabled when crouching
 
 	public Animator animator;                                                   //Used in animating the wall slide functionality	
@@ -78,10 +88,12 @@ public class CharacterController2D : MonoBehaviour
 		Physics2D.queriesStartInColliders = false;
 		//We use a raycast to detect the presence of a wall and if found we can perform a wall slide function.
 		m_isNearWall = Physics2D.Raycast(m_WallCheck.position, Vector2.right * transform.localScale.x, m_Distance);
-		
+		Debug.DrawRay(m_WallCheck.position, Vector2.right * transform.localScale.x * m_Distance, new Color(1f, 1f, 1f));
+
+
 		//This raycast detects if we are near a ledge and sets the m_isNearLedge bool to true if it detects a ledge.
 		//m_isNearLedge = Physics2D.Raycast(m_LedgeCheck.position, Vector2.right*transform.localScale.x, m_Distance);
-		
+
 		if (!m_Grounded && m_isNearWall && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
 		{
 			animator.SetBool("isWallSliding",true);
@@ -100,7 +112,7 @@ public class CharacterController2D : MonoBehaviour
 	}
 
 
-	public void Move(float move, bool crouch, bool jump, bool dash)
+	public void Move(float move, bool crouch, bool jump, bool dash, bool attack)
 	{
 		// If crouching, check to see if the character can stand up
 		if (!crouch)
@@ -181,8 +193,19 @@ public class CharacterController2D : MonoBehaviour
 			Vector3 targetVelocity = new Vector2(move * m_dashSpeed, m_Rigidbody2D.velocity.x);
 			// And then smoothing it out and applying it to the character
 			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
-        }
+		}
 		animator.SetFloat("DashSpeed", Mathf.Abs(m_Rigidbody2D.velocity.x));
+        //if the Player should attack
+        if (attack)
+        {
+			//Detect enemies in range
+			Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(m_AttackPoint.position, m_attackRange, m_EnemyLayers);
+			//Damage enemies
+			foreach(Collider2D enemy in hitEnemies)
+            {
+				enemy.GetComponent<EnemyController>().TakeDamage(m_attackDamage);
+            }
+        }
 	}
 
 
@@ -196,4 +219,13 @@ public class CharacterController2D : MonoBehaviour
 		theScale.x *= -1;
 		transform.localScale = theScale;
 	}
+
+    private void OnDrawGizmosSelected()
+    {
+		if(m_AttackPoint == null)
+        {
+			return; 
+        }
+		Gizmos.DrawWireSphere(m_AttackPoint.position, m_attackRange);
+    }
 }

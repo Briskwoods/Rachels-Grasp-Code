@@ -15,9 +15,13 @@ public class PlayerMovement : MonoBehaviour
     public float cooldownTime = 2f;
     private float nextDashTime = 0f;
     
+    public float attackRate = 2f;
+    private float nextAttackTime = 0f; 
+
     bool jump = false;
     bool crouch = false;
     bool dash = false;
+    bool attack = false;
 
     void Start()
     {
@@ -71,6 +75,16 @@ public class PlayerMovement : MonoBehaviour
                 dash = true;
             }
         }
+        
+        if (Time.time > nextAttackTime)
+        {
+            if (Input.GetButtonDown("Attack"))
+            {
+                animator.SetTrigger("Attack");
+                attack = true;
+                nextAttackTime = Time.time + 1f / attackRate;
+            }
+        }
     }
 
     public void onLanding()
@@ -86,9 +100,10 @@ public class PlayerMovement : MonoBehaviour
     void FixedUpdate()
     {
         //Move Character
-        controller.Move(horizontalMove * Time.fixedDeltaTime, crouch, jump, dash);
+        controller.Move(horizontalMove * Time.fixedDeltaTime, crouch, jump, dash, attack);
         jump = false;
         dash = false;
+        attack = false;
     }
 
 }
