@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 public class CharacterController2D : MonoBehaviour
 {
-	[SerializeField] private int m_attackDamage = 40;							// How much damage each attack deals
+	[SerializeField] public int m_attackDamage = 40;							// How much damage each attack deals
 
 	[SerializeField] private float m_attackRange = 0.5f;                        // Used to set the weapon attack range
 	[SerializeField] private float m_Distance = 0.4f;                           // Raycast distance to check for wall.
