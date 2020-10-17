@@ -11,7 +11,6 @@ namespace Platformer.View
         [SerializeField] private Vector2 parallaxEffectMultiplier;
         private Transform cameraTransform;
         private Vector3 lastCameraPosition;
-        //private float textureUnitSizeX;                             // Used in the infinite Scroll
 
         void Start()
         {
@@ -28,15 +27,7 @@ namespace Platformer.View
             //Parallax Camera Implementation            
             Vector3 deltaMovement = cameraTransform.position - lastCameraPosition;
             transform.position += new Vector3(deltaMovement.x * parallaxEffectMultiplier.x, deltaMovement.y * parallaxEffectMultiplier.y);
-            lastCameraPosition = cameraTransform.position;
-            
-            /* This is code to control the infinite scroll capability however this is for a much later implementation of this works, in the optimization phase*/
-            //if(Mathf.Abs(cameraTransform.position.x - transform.position.x)>= textureUnitSizeX)
-            //{
-            //    float offsetPositionX = (6 * cameraTransform.position.x - 6 * transform.position.x)%textureUnitSizeX;
-            //    transform.position = new Vector3(cameraTransform.position.x + offsetPositionX, cameraTransform.position.y);
-            //}
-        
+            lastCameraPosition = cameraTransform.position;  
         }
 
     }
