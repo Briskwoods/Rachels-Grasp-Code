@@ -5,10 +5,10 @@ using UnityEngine;
 public class PlayerHealthManager : MonoBehaviour
 {
     [SerializeField] public int m_maxHealth = 100;                      // Player max health variable.
-    [SerializeField] public int m_currentHealth;                        // Player current Health variable
+    [SerializeField] public int m_currentHealth = 0;                    // Player current Health variable
 
-    [SerializeField] public float m_knockbackForceX;
-    [SerializeField] public float m_knockbackForceY;
+    [SerializeField] public float m_knockbackForceX = 0;
+    [SerializeField] public float m_knockbackForceY = 0;
 
     [SerializeField] private GameManager gameManager;
 
@@ -19,7 +19,7 @@ public class PlayerHealthManager : MonoBehaviour
 
     [SerializeField] private Rigidbody2D m_player;                      // Player Rigidbody
 
-    [SerializeField] private Transform m_enemy;                         // Used in determining enemy position
+    [SerializeField] public GameObject[] m_enemy;                        // Used in determining enemy position
 
     private Renderer rend;                                              // Sprite Renderer, used in changing player trancparency on damage
     private Color C;                                                    // Sets player character to red upon damage
@@ -34,6 +34,7 @@ public class PlayerHealthManager : MonoBehaviour
         m_player = GetComponent<Rigidbody2D>();
         rend = GetComponent<Renderer>();
         C = rend.material.color;
+
     }
 
     public void TakeDamage(int damage)
@@ -43,13 +44,16 @@ public class PlayerHealthManager : MonoBehaviour
         StartCoroutine("GetInvunerable");
         m_animator.SetTrigger("Hurt");
 
-        if (m_enemy.position.x > m_player.transform.position.x)
+        foreach(GameObject enemy in m_enemy)
         {
-            m_player.AddForce(transform.up * m_knockbackForceY + transform.right * -m_knockbackForceX);
-        }
-        else if (m_enemy.position.x < m_player.transform.position.x)
-        {
-            m_player.AddForce(transform.up * m_knockbackForceY + transform.right * m_knockbackForceX);
+            if (enemy.transform.position.x > m_player.transform.position.x)
+            {
+                m_player.AddForce(transform.up * m_knockbackForceY + transform.right * -m_knockbackForceX);
+            }
+            else if (enemy.transform.position.x < m_player.transform.position.x)
+            {
+                m_player.AddForce(transform.up * m_knockbackForceY + transform.right * m_knockbackForceX);
+            }
         }
         Invoke("resetInvulnerability", 2);
 
@@ -79,19 +83,6 @@ public class PlayerHealthManager : MonoBehaviour
         // Play heal effect on player
 
     }
-
-    public void KnockbackForce()
-    {
-        if (m_enemy.position.x > m_player.transform.position.x)
-        {
-            m_player.AddForce(transform.up * m_knockbackForceY + transform.right * -m_knockbackForceX);
-        }
-        else if (m_enemy.position.x < m_player.transform.position.x)
-        {
-            m_player.AddForce(transform.up * m_knockbackForceY + transform.right * m_knockbackForceX);
-        }
-    }
-    
 
     // Resets player invunerability
     public void resetInvulnerability()
