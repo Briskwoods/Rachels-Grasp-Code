@@ -4,19 +4,22 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public CharacterController2D controller;
-    public Animator animator;
-    private Rigidbody2D player;
+    [SerializeField] private float runSpeed = 40f;
+    [SerializeField] private float attackRate = 2f;
+    [SerializeField] private float nextAttackTime = 0f;
+    [SerializeField] private float cooldownTime = 2f;
+    [SerializeField] private float nextDashTime = 0f;
 
-    public float runSpeed = 40f;
-    float horizontalMove = 0f;
-    float fallSpeed;
+    [SerializeField] private PlayerHealthManager playerHealth;
 
-    public float cooldownTime = 2f;
-    private float nextDashTime = 0f;
-    
-    public float attackRate = 2f;
-    private float nextAttackTime = 0f; 
+    [SerializeField] private CharacterController2D controller;
+
+    [SerializeField] private Rigidbody2D player;
+
+    [SerializeField] private Animator animator;
+
+    private float horizontalMove = 0f;
+    private float fallSpeed;
 
     bool jump = false;
     bool crouch = false;
@@ -25,18 +28,18 @@ public class PlayerMovement : MonoBehaviour
 
     void Start()
     {
-        player = GetComponent<Rigidbody2D>();    
+        player = GetComponent<Rigidbody2D>();
     }
 
 
     // Update is called once per frame
     void Update()
     {
-        //Horizontal Movement Detection
+        // Horizontal Movement Detection
         horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;
 
-        //Animation Handlers
-        //Fall Animation Handler
+        // Animation Handlers
+        // Fall Animation Handler
         fallSpeed = player.velocity.y;
         animator.SetFloat("FallSpeed", fallSpeed);
         if (fallSpeed <= -2f)
@@ -47,17 +50,17 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetBool("isFalling", false);
         }
-        //Run Animation Handler
-        animator.SetFloat("Speed",Mathf.Abs(horizontalMove));
-        //Wall Slide animation Handler 
-        
-        //Detect Jump
+        // Run Animation Handler
+        animator.SetFloat("Speed", Mathf.Abs(horizontalMove));
+        // Wall Slide animation Handler 
+
+        // Detect Jump
         if (Input.GetButtonDown("Jump"))
         {
             jump = true;
-            animator.SetBool("isJumping",true);
+            animator.SetBool("isJumping", true);
         }
-        //Detect Crouch
+        // Detect Crouch
         if (Input.GetButtonDown("Crouch"))
         {
             crouch = true;
@@ -66,18 +69,20 @@ public class PlayerMovement : MonoBehaviour
         {
             crouch = false;
         }
-        //Dash Ability
+        // Dash Ability
         if (Input.GetButtonDown("Dash"))
         {
-            if (Time.time > nextDashTime) //Dash Ability cooldown 
+            // Dash Ability cooldown 
+            if (Time.time > nextDashTime)
             {
                 nextDashTime = Time.time + cooldownTime;
                 dash = true;
             }
         }
-        
+
         if (Time.time > nextAttackTime)
         {
+            // Attack Cooldown 
             if (Input.GetButtonDown("Attack"))
             {
                 animator.SetTrigger("Attack");
@@ -90,7 +95,7 @@ public class PlayerMovement : MonoBehaviour
     public void onLanding()
     {
         animator.SetBool("isFalling", false);
-        animator.SetBool("isJumping",false);
+        animator.SetBool("isJumping", false);
     }
 
     public void onCrouching(bool isCrouching)
@@ -106,4 +111,47 @@ public class PlayerMovement : MonoBehaviour
         attack = false;
     }
 
+    public void OnCollisionEnter2D(Collision2D collision)
+    {
+        switch (collision.transform.CompareTag("Enemy"))
+        {
+            case true:
+                // Get enemy script for damage.
+                EnemyController enemy = GetComponent<EnemyController>();
+
+                // Deal damage to player.
+                playerHealth.TakeDamage(10);
+                // Animate taking damage
+                animator.SetTrigger("Hurt");
+
+                // Start invincibility Coroutine
+                playerHealth.StartCoroutine("GetInvunerable");
+                // Player Knockback
+                if (collision.transform.position.x > player.transform.position.x)
+                {
+                    player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * -(playerHealth.m_knockbackForceX));
+                }
+                else if (collision.transform.position.x < player.transform.position.x)
+                {
+                    player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * playerHealth.m_knockbackForceX);
+                }
+                // Reset invincibility
+                playerHealth.Invoke("resetInvulnerability", 2);
+
+                // Check if player health is < 0 to invoke death.
+                switch (playerHealth.m_currentHealth <= 0) {
+                    case true:
+                        playerHealth.Die();
+                        break;
+                    case false:
+                        break;
+                }
+                
+                break;
+            case false:
+                break;
+        }
+
+       
+    }
 }
