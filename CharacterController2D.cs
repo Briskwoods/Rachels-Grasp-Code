@@ -14,8 +14,7 @@ public class CharacterController2D : MonoBehaviour
 	[SerializeField] private float m_normalDashSpeed;                           // Used to set the dash speed variable back to normal after crouch dash(roll)
 	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			// Amount of maxSpeed applied to crouching movement. 1 = 100%
 	[Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;  // How much to smooth out the movement
-
-
+	
 	[SerializeField] private bool m_AirControl = false;							// Whether or not a player can steer while jumping;
 	
 	[SerializeField] private LayerMask m_WhatIsGround;							// A mask determining what is ground to the character
@@ -117,6 +116,7 @@ public class CharacterController2D : MonoBehaviour
 		// If crouching, check to see if the character can stand up
 		if (!crouch)
 		{
+			m_Rigidbody2D.mass = 1.102604f;
 			// If the character has a ceiling preventing them from standing up, keep them crouching
 			if (Physics2D.OverlapCircle(m_CeilingCheck.position, k_CeilingRadius, m_WhatIsGround))
 			{
@@ -134,6 +134,7 @@ public class CharacterController2D : MonoBehaviour
 			// If crouching
 			if (crouch)
 			{
+				m_Rigidbody2D.mass = 0.651302f; 
 				m_dashSpeed = m_crouchDashSpeed;
 				if (!m_wasCrouching)
 				{
@@ -200,11 +201,21 @@ public class CharacterController2D : MonoBehaviour
         {
 			//Detect enemies in range
 			Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(m_AttackPoint.position, m_attackRange, m_EnemyLayers);
-			//Damage enemies
 			foreach(Collider2D enemy in hitEnemies)
             {
+				//Damage enemies
 				enemy.GetComponent<EnemyController>().TakeDamage(m_attackDamage);
-            }
+
+				// Knockback the enemy
+				if (m_Rigidbody2D.transform.position.x > enemy.transform.position.x)
+				{
+					enemy.GetComponent<Rigidbody2D>().AddForce(transform.up * enemy.GetComponent<EnemyController>().m_knockbackForceY + transform.right * -(enemy.GetComponent<EnemyController>().m_knockbackForceX * 2f));
+				}
+				else if (m_Rigidbody2D.transform.position.x < enemy.transform.position.x)
+				{
+					enemy.GetComponent<Rigidbody2D>().AddForce(transform.up * enemy.GetComponent<EnemyController>().m_knockbackForceY + transform.right * enemy.GetComponent<EnemyController>().m_knockbackForceX);
+				}
+			}
         }
 	}
 
