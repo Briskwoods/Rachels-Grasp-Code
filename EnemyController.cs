@@ -18,12 +18,14 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float m_nextAttackTime = 0f;               // Time Until Next Attack
     [SerializeField] private float m_TimeBetweenAttacks = 1.5f;
     [SerializeField] private float m_stoppingDistance =1f;              // Distance at which the enemy stops before the player.
-    [SerializeField] private float m_knockbackForceX =100f;
-    [SerializeField] private float m_knockbackForceY = 100f;
+    
+    [SerializeField] public float m_knockbackForceX =100f;
+    [SerializeField] public float m_knockbackForceY = 100f;
 
     [SerializeField] private PlayerHealthManager playerHealth;          // For interactions with the player health manager
     [SerializeField] private Rigidbody2D m_rigidbody;                   // For Knockback force
-    
+    [SerializeField] private Rigidbody2D m_player;                      // Used in knocking the player back when enemy attacks
+
     [SerializeField] private Transform m_lineOfSightStart;              // Where the enemies Line of sight begins
     [SerializeField] private Transform m_lineOfSightEnd;                // Where the enemies Line of sight ends
     [SerializeField] private Transform m_attackPoint;                   // Where the enemy attack lands
@@ -39,14 +41,14 @@ public class EnemyController : MonoBehaviour
 
     [SerializeField] private bool m_isPatrolling;                       // Decided if the enemy is idle or patrolling.
     [SerializeField] private bool m_isGround;                           // Variable used to check if the enemy is patrolling on a platform or on the ground
-    
+
     private bool playerSeen;                                            // Set to true or false when enemy detects player
     private bool wallInfo;                                              // Detects the precense of a wall.
     private bool m_movingRight = true;                                  // Used in flipping the enemy sprite when the enemy is turning
     private bool inRange;                                               // Detects if player is in range.
-    private bool hitPlayer;
+    private bool hitPlayer;                                             // Detects if the player is hit to deal damage
         
-    private int m_numberOfTimesPlayerIsDetected = 0;                    
+    private int m_numberOfTimesPlayerIsDetected = 0;                    // Sets enemy to patrol after detecting player
     
     // Start is called before the first frame update
     void Start()
@@ -65,26 +67,7 @@ public class EnemyController : MonoBehaviour
     void Update()
     {
         // Checks if player has been hit
-        hitPlayer = Physics2D.OverlapCircle(m_attackPoint.position, m_attackRange, m_PlayerLayer);
-        switch (hitPlayer)
-        {
-            case true:
-                switch (Time.time > m_nextAttackTime)
-                {
-                    case true:
-                        playerHealth.TakeDamage(m_attackDamage);
-                        // Attack Cooldown
-                        m_nextAttackTime = Time.time + m_TimeBetweenAttacks;
-                        break;
-                    case false:
-                        break;
-                }
-                break;
-            case false:
-                break;
-        }
-
-
+        //hitPlayer = Physics2D.OverlapCircle(m_attackPoint.position, m_attackRange, m_PlayerLayer);
         //This line prevents the raycast from detecting the enemy's box colliders
         Physics2D.queriesStartInColliders = false;
         //We use a Linecast to detect the presence of a player and if found the enemy can move towards the player.
@@ -226,15 +209,15 @@ public class EnemyController : MonoBehaviour
         // If a player is in range
         switch (inRange)
         {
+            // The enemy attacks the player.
             case true:
-                // The enemy attacks the player.
                 // Enemy Attack cooldown 
                 switch (Time.time > m_nextAttackTime)
                 {
                     case true:
-                        Attack();
-                        // Check if attack point hits the player
-                        // Attack Cooldown
+                        //Set Attack Animation trigger
+                        m_animator.SetTrigger("Attack");
+                        // Pause between Attacks
                         m_nextAttackTime = Time.time + m_TimeBetweenAttacks;
                         break;
                     case false:
@@ -253,15 +236,6 @@ public class EnemyController : MonoBehaviour
         m_currentHealth -= damage;
         m_animator.SetTrigger("Hurt");
 
-        if (m_target.transform.position.x > transform.position.x)
-        {
-            m_rigidbody.AddForce(transform.up * m_knockbackForceY + transform.right * -m_knockbackForceX);
-        }
-        else if (m_target.transform.position.x < transform.position.x)
-        {
-            m_rigidbody.AddForce(transform.up * m_knockbackForceY + transform.right * m_knockbackForceX);
-        }
-
         if (m_currentHealth <= 0)
         {
             Die();
@@ -270,8 +244,34 @@ public class EnemyController : MonoBehaviour
     // Enemy Attack Function
     void Attack()
     {
-        m_animator.SetTrigger("Attack");
-       
+        // We use an OverlapCircle to Detect the Player
+        hitPlayer = Physics2D.OverlapCircle(m_attackPoint.position, m_attackRange, m_PlayerLayer);
+        // If the player object is detected the player takes damage
+        try
+        {
+            switch (hitPlayer)
+            {
+                case true:
+                    // Damage the player.
+                    playerHealth.TakeDamage(m_attackDamage);
+
+                    // Knockback the player
+                    if (m_rigidbody.transform.position.x > m_target.position.x)
+                    {
+                        m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * (playerHealth.m_knockbackForceX));
+                    }
+                    else if (m_rigidbody.transform.position.x < m_player.transform.position.x)
+                    {
+                        m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * playerHealth.m_knockbackForceX);
+                    }
+                    break;
+                case false:
+                    break;
+            }
+        }catch(Exception e)
+        {
+            Debug.LogException(e, this);
+        }
     }
     // Enemy Death function
     void Die()
@@ -282,6 +282,8 @@ public class EnemyController : MonoBehaviour
         //Disable the enemy collider on death and prevent the script from continuing
         GetComponent<Collider2D>().enabled = false;
         this.enabled = false;
+
+
     }
 
     private void OnDrawGizmosSelected()
