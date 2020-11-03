@@ -116,16 +116,13 @@ public class PlayerMovement : MonoBehaviour
         switch (collision.transform.CompareTag("Enemy"))
         {
             case true:
-                // Get enemy script for damage.
-                EnemyController enemy = GetComponent<EnemyController>();
-
+                playerHealth.StartCoroutine("GetInvunerable");
                 // Deal damage to player.
                 playerHealth.TakeDamage(10);
                 // Animate taking damage
                 animator.SetTrigger("Hurt");
 
                 // Start invincibility Coroutine
-                playerHealth.StartCoroutine("GetInvunerable");
                 // Player Knockback
                 if (collision.transform.position.x > player.transform.position.x)
                 {
@@ -151,7 +148,20 @@ public class PlayerMovement : MonoBehaviour
             case false:
                 break;
         }
-
-       
     }
+
+    //public void OnTriggerEnter2D(Collider2D collision)
+    //{
+    //    void OnTriggerEnter2D(Collider2D other)
+    //    {
+    //        if (other.CompareTag("Water"))
+    //        {
+    //            player.gravityScale = 1f;
+    //        }
+    //        else
+    //        {
+    //            player.gravityScale = 5f;
+    //        }
+    //    }
+    //}
 }
