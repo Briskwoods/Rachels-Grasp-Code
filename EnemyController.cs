@@ -244,34 +244,41 @@ public class EnemyController : MonoBehaviour
     // Enemy Attack Function
     void Attack()
     {
-        // We use an OverlapCircle to Detect the Player
-        hitPlayer = Physics2D.OverlapCircle(m_attackPoint.position, m_attackRange, m_PlayerLayer);
-        // If the player object is detected the player takes damage
-        try
+        switch (playerHealth.m_invunerability == 0)
         {
-            switch (hitPlayer)
-            {
-                case true:
-                    // Damage the player.
-                    playerHealth.TakeDamage(m_attackDamage);
+            case true:
+                // We use an OverlapCircle to Detect the Player
+                hitPlayer = Physics2D.OverlapCircle(m_attackPoint.position, m_attackRange, m_PlayerLayer);
+                // If the player object is detected the player takes damage
+                try
+                {
+                    switch (hitPlayer)
+                    {
+                        case true:
+                            // Damage the player.
+                            playerHealth.TakeDamage(m_attackDamage);
 
-                    // Knockback the player
-                    if (m_rigidbody.transform.position.x > m_target.position.x)
-                    {
-                        m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * (playerHealth.m_knockbackForceX));
+                            // Knockback the player
+                            if (m_rigidbody.transform.position.x > m_target.position.x)
+                            {
+                                m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * (playerHealth.m_knockbackForceX));
+                            }
+                            else if (m_rigidbody.transform.position.x < m_player.transform.position.x)
+                            {
+                                m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * playerHealth.m_knockbackForceX);
+                            }
+                            break;
+                        case false:
+                            break;
                     }
-                    else if (m_rigidbody.transform.position.x < m_player.transform.position.x)
-                    {
-                        m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * playerHealth.m_knockbackForceX);
-                    }
-                    break;
-                case false:
-                    break;
-            }
-        }catch(Exception e)
-        {
-            Debug.LogException(e, this);
-        }
+                }catch(Exception e)
+                {
+                    Debug.LogException(e, this);
+                }
+                break;
+            case false:
+                break;
+        }    
     }
     // Enemy Death function
     void Die()

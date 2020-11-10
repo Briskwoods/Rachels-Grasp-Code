@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerHealthManager : MonoBehaviour
 {
-    [SerializeField] public int m_maxHealth = 100;                      // Player max health variable.
+    [Range(0, 100)][SerializeField] public int m_maxHealth = 100;       // Player max health variable.
     [SerializeField] public int m_currentHealth = 0;                    // Player current Health variable
 
     [SerializeField] public float m_knockbackForceX = 0;                // Amount of Force th player is knocked back with on the X axis
@@ -17,6 +17,8 @@ public class PlayerHealthManager : MonoBehaviour
     [SerializeField] private Animator m_animator;                       // Player animation controller   
 
     [SerializeField] private Rigidbody2D m_player;                      // Player Rigidbody
+
+    [SerializeField] public int m_invunerability = 0;                   // Sets player vunerability state, used to prevent damage whenn vunerable
 
     private Renderer rend;                                              // Sprite Renderer, used in changing player trancparency on damage
     private Color C;                                                    // Sets player character to red upon damage
@@ -37,8 +39,6 @@ public class PlayerHealthManager : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-
-
         StartCoroutine("GetInvunerable");
         m_animator.SetTrigger("Hurt");
         m_currentHealth -= damage;
@@ -71,16 +71,18 @@ public class PlayerHealthManager : MonoBehaviour
     // Resets player invunerability
     public void resetInvulnerability()
     {
+        m_invunerability = 0;
         Physics2D.IgnoreLayerCollision(10, 8, false);
     }
 
     // Allows Player to run past enemy after taking damage
     public IEnumerator GetInvunerable()
     {
+        m_invunerability = 1;
         Physics2D.IgnoreLayerCollision(10, 8, true);
         C.a = 0.5f;
         rend.material.color = C;
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(3f);
         Physics2D.IgnoreLayerCollision(10, 8, false);
         C.a = 1.0f;
         rend.material.color = C;
