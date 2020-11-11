@@ -66,8 +66,6 @@ public class EnemyController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Checks if player has been hit
-        //hitPlayer = Physics2D.OverlapCircle(m_attackPoint.position, m_attackRange, m_PlayerLayer);
         //This line prevents the raycast from detecting the enemy's box colliders
         Physics2D.queriesStartInColliders = false;
         //We use a Linecast to detect the presence of a player and if found the enemy can move towards the player.
