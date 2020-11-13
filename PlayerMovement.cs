@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float runSpeed = 40f;
+    [SerializeField] private float swimSpeed = 30f;
     [SerializeField] private float attackRate = 2f;
     [SerializeField] private float nextAttackTime = 0f;
     [SerializeField] private float cooldownTime = 2f;
@@ -18,8 +19,19 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private Animator animator;
 
+    [SerializeField] private Transform m_WaterCheck;
+    [SerializeField] private float m_WaterCheckRadius;
+    [SerializeField] private LayerMask m_WaterLayer;
+
+    [SerializeField] private bool isSwimming = false;
+
     private float horizontalMove = 0f;
     private float fallSpeed;
+
+    private float swimMove = 0f;
+    private float swimVertical = 0f;
+
+    private bool waterDetected;
 
     bool jump = false;
     bool crouch = false;
@@ -35,60 +47,97 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // Horizontal Movement Detection
-        horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;
+        switch (!isSwimming) {
+            case true:
 
-        // Animation Handlers
-        // Fall Animation Handler
-        fallSpeed = player.velocity.y;
-        animator.SetFloat("FallSpeed", fallSpeed);
-        if (fallSpeed <= -2f)
-        {
-            animator.SetBool("isFalling", true);
-        }
-        else
-        {
-            animator.SetBool("isFalling", false);
-        }
-        // Run Animation Handler
-        animator.SetFloat("Speed", Mathf.Abs(horizontalMove));
-        // Wall Slide animation Handler 
+                // Horizontal Movement Detection
+                horizontalMove = Input.GetAxisRaw("Horizontal") * runSpeed;
 
-        // Detect Jump
-        if (Input.GetButtonDown("Jump"))
-        {
-            jump = true;
-            animator.SetBool("isJumping", true);
-        }
-        // Detect Crouch
-        if (Input.GetButtonDown("Crouch"))
-        {
-            crouch = true;
-        }
-        else if (Input.GetButtonUp("Crouch"))
-        {
-            crouch = false;
-        }
-        // Dash Ability
-        if (Input.GetButtonDown("Dash"))
-        {
-            // Dash Ability cooldown 
-            if (Time.time > nextDashTime)
-            {
-                nextDashTime = Time.time + cooldownTime;
-                dash = true;
-            }
-        }
+                // Animation Handlers
+                // Fall Animation Handler
+                fallSpeed = player.velocity.y;
+                animator.SetFloat("FallSpeed", fallSpeed);
+                if (fallSpeed <= -2f)
+                {
+                    animator.SetBool("isFalling", true);
+                }
+                else
+                {
+                    animator.SetBool("isFalling", false);
+                }
+                // Run Animation Handler
+                animator.SetFloat("Speed", Mathf.Abs(horizontalMove));
+                // Wall Slide animation Handler 
 
-        if (Time.time > nextAttackTime)
-        {
-            // Attack Cooldown 
-            if (Input.GetButtonDown("Attack"))
-            {
-                animator.SetTrigger("Attack");
-                attack = true;
-                nextAttackTime = Time.time + 1f / attackRate;
-            }
+                // Detect Jump
+                if (Input.GetButtonDown("Jump"))
+                {
+                    jump = true;
+                    animator.SetBool("isJumping", true);
+                }
+                // Detect Crouch
+                if (Input.GetButtonDown("Crouch"))
+                {
+                    crouch = true;
+                }
+                else if (Input.GetButtonUp("Crouch"))
+                {
+                    crouch = false;
+                }
+                // Dash Ability
+                if (Input.GetButtonDown("Dash"))
+                {
+                    // Dash Ability cooldown 
+                    if (Time.time > nextDashTime)
+                    {
+                        nextDashTime = Time.time + cooldownTime;
+                        dash = true;
+                    }
+                }
+
+                if (Time.time > nextAttackTime)
+                {
+                    // Attack Cooldown 
+                    if (Input.GetButtonDown("Attack"))
+                    {
+                        animator.SetTrigger("Attack");
+                        attack = true;
+                        nextAttackTime = Time.time + 1f / attackRate;
+                    }
+                }
+                break;
+            case false:
+                // Fall Animation Handler
+                fallSpeed = player.velocity.y;
+                animator.SetFloat("FallSpeed", fallSpeed);
+                if (fallSpeed <= -0.08f)
+                {
+                    animator.SetBool("isFalling", true);
+                }
+                else
+                {
+                    animator.SetBool("isFalling", false);
+                }
+
+                // Swim Movement Horizontal
+                swimMove = Input.GetAxis("Horizontal") * swimSpeed;
+                animator.SetFloat("Speed", Mathf.Abs(swimMove));
+
+                // Swim Movement Vertical 
+                swimVertical = Input.GetAxis("Vertical") * swimSpeed;
+                animator.SetFloat("VerticalSpeed", swimVertical);
+                
+                // Swim Dash
+                if (Input.GetButtonDown("Dash"))
+                {
+                    // Dash Ability cooldown 
+                    if (Time.time > nextDashTime)
+                    {
+                        nextDashTime = Time.time + cooldownTime;
+                        dash = true;
+                    }
+                }
+                break;
         }
     }
 
@@ -104,11 +153,28 @@ public class PlayerMovement : MonoBehaviour
     }
     void FixedUpdate()
     {
-        //Move Character
-        controller.Move(horizontalMove * Time.fixedDeltaTime, crouch, jump, dash, attack);
-        jump = false;
-        dash = false;
-        attack = false;
+        waterDetected = Physics2D.OverlapCircle(m_WaterCheck.position, m_WaterCheckRadius, m_WaterLayer);
+
+        switch (!waterDetected)
+        {
+            // if not true then the character is grounded and uses the ground movement functionality
+            case true:
+                isSwimming = false;
+                animator.SetBool("isSwimming", false);
+                controller.Move(horizontalMove * Time.fixedDeltaTime, crouch, jump, dash, attack);
+                jump = false;
+                dash = false;
+                attack = false;
+                break;
+            // if true then the player swims
+            case false:
+                isSwimming = true;
+                animator.SetBool("isSwimming", true);
+                controller.Swim(swimMove, swimVertical, dash);
+                dash = false;
+                break;
+        }
+
     }
 
     public void OnCollisionEnter2D(Collision2D collision)
@@ -150,18 +216,8 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    //public void OnTriggerEnter2D(Collider2D collision)
-    //{
-    //    void OnTriggerEnter2D(Collider2D other)
-    //    {
-    //        if (other.CompareTag("Water"))
-    //        {
-    //            player.gravityScale = 1f;
-    //        }
-    //        else
-    //        {
-    //            player.gravityScale = 5f;
-    //        }
-    //    }
-    //}
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.DrawWireSphere(m_WaterCheck.position, m_WaterCheckRadius);
+    }
 }

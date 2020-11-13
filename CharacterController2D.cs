@@ -9,7 +9,8 @@ public class CharacterController2D : MonoBehaviour
 	[SerializeField] private float m_Distance = 0.4f;                           // Raycast distance to check for wall.
 	[SerializeField] private float m_SlideSpeed = -3f ;                         // Wall Slide Speed.
 	[SerializeField] private float m_JumpForce = 400f;							// Amount of force added when the player jumps.
-	[SerializeField] private float m_dashSpeed;		                            // Speed to multiply movement by for dash.
+	[SerializeField] private float m_dashSpeed;                                 // Speed to multiply movement by for dash.
+	[SerializeField] private float m_underwaterDashSpeed;						// Underwater Dash speed
 	[SerializeField] private float m_crouchDashSpeed = 300f;                    // Speed to multiply movement by for crouch dash.
 	[SerializeField] private float m_normalDashSpeed;                           // Used to set the dash speed variable back to normal after crouch dash(roll)
 	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			// Amount of maxSpeed applied to crouching movement. 1 = 100%
@@ -113,6 +114,9 @@ public class CharacterController2D : MonoBehaviour
 
 	public void Move(float move, bool crouch, bool jump, bool dash, bool attack)
 	{
+		// Change the gravity back to normal when not swimming
+		m_Rigidbody2D.gravityScale = 5f;
+		
 		// If crouching, check to see if the character can stand up
 		if (!crouch)
 		{
@@ -219,6 +223,42 @@ public class CharacterController2D : MonoBehaviour
         }
 	}
 
+	public void Swim(float horizontalMove, float verticalMove,  bool dash)
+    {
+		// Set gravity to a lower scale to fall slower through water
+		m_Rigidbody2D.gravityScale = 1.5f;
+
+		// Move the character by finding the target velocity
+		Vector3 targetVelocity = new Vector2(horizontalMove / 10f, verticalMove / 10f);
+		// And then smoothing it out and applying it to the character
+		m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
+
+		// If the input is moving the player right and the player is facing left...
+		if (horizontalMove > 0 && !m_FacingRight)
+		{
+			// ... flip the player.
+			Flip();
+		}
+		// Otherwise if the input is moving the player left and the player is facing right...
+		else if (horizontalMove < 0 && m_FacingRight)
+		{
+			// ... flip the player.
+			Flip();
+		}
+
+
+		if (dash)
+		{
+			// Dash the character by finding the target velocity
+			Vector3 dashVelocity = new Vector2(horizontalMove * m_underwaterDashSpeed, m_Rigidbody2D.velocity.x);
+			// And then smoothing it out and applying it to the character
+			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, dashVelocity, ref m_Velocity, m_MovementSmoothing);
+		}
+		animator.SetFloat("DashSpeed", Mathf.Abs(m_Rigidbody2D.velocity.x));
+
+
+
+	}
 
 	private void Flip()
 	{
