@@ -9,19 +9,28 @@ public class DialogueManager : MonoBehaviour
     public Text dialogueText;                                   // Where the dialogue shows up
         
     [SerializeField] private Animator m_animator;               // Controls the dialogue animation
-    
+
     private Queue<string> sentences;                            // These are the dialogue sentences that will be shown
 
+    private InteractibleDialogue[] interactibles;                         // Returns a list of all interactibles in the scene and disables interactions during a dialogue and re-enables after
+ 
     // Start is called before the first frame update
     void Start()
     {
         sentences = new Queue<string>();
+        interactibles = FindObjectsOfType<InteractibleDialogue>();
+
     }
 
     public void StartDialogue(Dialogue dialogue)
     {
         // When we start a dialogue, we want the player to stop moving
-
+        GameObject.Find("Player").GetComponent<PlayerMovement>().enabled = false;
+        // We prevent the interact button from being pressed again by disabling the interact script during dialogue
+        foreach(InteractibleDialogue interactible in interactibles)
+        {
+            interactible.enabled = false;
+        }
         // Hide other UI elements
 
         // Show the dialogue box
@@ -62,5 +71,12 @@ public class DialogueManager : MonoBehaviour
         // Unhide other UI elements
 
         // Player is able to move
+        GameObject.Find("Player").GetComponent<PlayerMovement>().enabled = true;
+        // Interactibles can now function normally
+        // We prevent the interact button from being pressed again by disabling the interact script during dialogue
+        foreach (InteractibleDialogue interactible in interactibles)
+        {
+            interactible.enabled = true;
+        }
     }
 }
