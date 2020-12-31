@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    private static GameManager instance;
 
     [SerializeField] private Transform underworldSpawnPoint;
     [SerializeField] private Transform respawnPoint;
@@ -13,7 +13,11 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private PlayerHealthManager playerHealth;
 
+    [SerializeField] private PlayerMovement playerMovement;
+
     [SerializeField] private Rigidbody2D m_player;
+
+    [SerializeField] private Animator playerAnimator;
 
     [SerializeField] private GameObject normalBackground;
     [SerializeField] private GameObject deathBackground;
@@ -22,24 +26,15 @@ public class GameManager : MonoBehaviour
     
     public Vector2 lastCheckpointPos;
 
+
     private void Awake()
     {
-        switch (instance == null)
-        {
-            case true:
-                instance = this;
-                DontDestroyOnLoad(instance);
-                break;
-            case false:
-                Destroy(gameObject);
-                break;
-        }    
+        Time.timeScale = 1f;
     }
-
     // Start is called before the first frame update
     void Start()
     {
-       
+        Time.timeScale = 1f;
     }
 
     // Update is called once per frame
@@ -58,8 +53,10 @@ public class GameManager : MonoBehaviour
         // Wait for a few seconds
         StartCoroutine("timerBeforeRespawn");
         // Play Death animation animation
-        
+        playerMovement.enabled = false;
         // Spawn Player in the "underworld"
+        StopCoroutine("timerBeforeRespawn");
+        playerMovement.enabled = true;
         m_player.position = underworldSpawnPoint.position;
 
     }
@@ -79,11 +76,29 @@ public class GameManager : MonoBehaviour
         // Play spawn animation
 
         // Spawn Player in the "underworld"
+        StopCoroutine("timerBeforeRespawn");
+        playerMovement.enabled = true;
         m_player.position = lastCheckpointPos;
     }
+
+    // Used to load the next scene
+    public void LoadNextScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+
+    // Used to stop player movement
+    public void StopPlayer()
+    {
+        m_player.velocity = new Vector2(0, 0);
+        playerAnimator.SetFloat("Speed", 0);
+    }
+
 
     public IEnumerator timerBeforeRespawn()
     {
         yield return new WaitForSeconds(3f);
     }
+    
+
 }
