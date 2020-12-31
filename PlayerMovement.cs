@@ -10,6 +10,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float nextAttackTime = 0f;
     [SerializeField] private float cooldownTime = 2f;
     [SerializeField] private float nextDashTime = 0f;
+    
+    [SerializeField] private int  knockbackDamage = 10;
 
     [SerializeField] private PlayerHealthManager playerHealth;
 
@@ -20,10 +22,17 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private Animator animator;
 
     [SerializeField] private Transform m_WaterCheck;
+    [SerializeField] private Transform m_HeadPosition;
+
+    //[SerializeField] private AudioSource runSound;
+    //[SerializeField] private AudioSource swimSound;
+
     [SerializeField] private float m_WaterCheckRadius;
+    [SerializeField] private float m_HeadSize;
+
     [SerializeField] private LayerMask m_WaterLayer;
 
-    [SerializeField] private bool isSwimming = false;
+    [SerializeField] public bool isSwimming = false;
 
     private float horizontalMove = 0f;
     private float fallSpeed;
@@ -31,7 +40,8 @@ public class PlayerMovement : MonoBehaviour
     private float swimMove = 0f;
     private float swimVertical = 0f;
 
-    private bool waterDetected;
+    private bool bodySubmerged;
+    public bool headSubmerged;
 
     bool jump = false;
     bool crouch = false;
@@ -57,6 +67,16 @@ public class PlayerMovement : MonoBehaviour
                 // Fall Animation Handler
                 fallSpeed = player.velocity.y;
                 animator.SetFloat("FallSpeed", fallSpeed);
+                //switch (horizontalMove != 0)
+                //{
+                //    case true:
+                //        runSound.Play();
+                //        break;
+                //    case false:
+                //        runSound.Stop();
+                //        break;
+                //}
+
                 if (fallSpeed <= -2f)
                 {
                     animator.SetBool("isFalling", true);
@@ -122,7 +142,15 @@ public class PlayerMovement : MonoBehaviour
                 // Swim Movement Horizontal
                 swimMove = Input.GetAxis("Horizontal") * swimSpeed;
                 animator.SetFloat("Speed", Mathf.Abs(swimMove));
-
+                //switch (swimMove != 0 || swimVertical !=0)
+                //{
+                //    case true:
+                //        swimSound.Play();
+                //        break;
+                //    case false:
+                //        swimSound.Stop();
+                //        break;
+                //}
                 // Swim Movement Vertical 
                 swimVertical = Input.GetAxis("Vertical") * swimSpeed;
                 animator.SetFloat("VerticalSpeed", swimVertical);
@@ -153,28 +181,50 @@ public class PlayerMovement : MonoBehaviour
     }
     void FixedUpdate()
     {
-        waterDetected = Physics2D.OverlapCircle(m_WaterCheck.position, m_WaterCheckRadius, m_WaterLayer);
+        headSubmerged = Physics2D.OverlapCircle(m_HeadPosition.position, m_HeadSize, m_WaterLayer);
+        bodySubmerged = Physics2D.OverlapCircle(m_WaterCheck.position, m_WaterCheckRadius, m_WaterLayer);
 
-        switch (!waterDetected)
+        switch (bodySubmerged && headSubmerged)
         {
-            // if not true then the character is grounded and uses the ground movement functionality
+            case true:
+                isSwimming = true;
+                animator.SetBool("isSwimming", true);
+                animator.SetBool("HeadSubmerged", true);
+                controller.Swim(swimMove, swimVertical, dash);
+                dash = false;
+                break;
+            case false:
+                break;
+        }
+
+        switch (bodySubmerged && !headSubmerged)
+        {
+            case true:
+
+                isSwimming = true;
+                animator.SetBool("isSwimming", true);
+                animator.SetBool("HeadSubmerged", false);
+                controller.Swim(swimMove, swimVertical, dash);
+                dash = false;
+                break;
+            case false:
+                break;
+        }
+
+        switch (!bodySubmerged && !headSubmerged)
+        {
             case true:
                 isSwimming = false;
                 animator.SetBool("isSwimming", false);
+                animator.SetBool("HeadSubmerged", false);
                 controller.Move(horizontalMove * Time.fixedDeltaTime, crouch, jump, dash, attack);
                 jump = false;
                 dash = false;
                 attack = false;
                 break;
-            // if true then the player swims
             case false:
-                isSwimming = true;
-                animator.SetBool("isSwimming", true);
-                controller.Swim(swimMove, swimVertical, dash);
-                dash = false;
                 break;
         }
-
     }
 
     public void OnCollisionEnter2D(Collision2D collision)
@@ -182,34 +232,23 @@ public class PlayerMovement : MonoBehaviour
         switch (collision.transform.CompareTag("Enemy"))
         {
             case true:
-                playerHealth.StartCoroutine("GetInvunerable");
-                // Deal damage to player.
-                playerHealth.TakeDamage(10);
-                // Animate taking damage
-                animator.SetTrigger("Hurt");
-
-                // Start invincibility Coroutine
-                // Player Knockback
-                if (collision.transform.position.x > player.transform.position.x)
-                {
-                    player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * -(playerHealth.m_knockbackForceX));
-                }
-                else if (collision.transform.position.x < player.transform.position.x)
-                {
-                    player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * playerHealth.m_knockbackForceX);
-                }
-                // Reset invincibility
-                playerHealth.Invoke("resetInvulnerability", 2);
-
-                // Check if player health is < 0 to invoke death.
-                switch (playerHealth.m_currentHealth <= 0) {
+                switch (playerHealth.m_invunerability == 0) {
                     case true:
-                        playerHealth.Die();
+                        
+                        playerHealth.TakeDamage(knockbackDamage);
+                        
+                        if (collision.transform.position.x > player.transform.position.x)
+                        {
+                            player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * -(playerHealth.m_knockbackForceX));
+                        }
+                        else if (collision.transform.position.x < player.transform.position.x)
+                        {
+                            player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * playerHealth.m_knockbackForceX);
+                        }
                         break;
                     case false:
                         break;
                 }
-                
                 break;
             case false:
                 break;
@@ -219,5 +258,6 @@ public class PlayerMovement : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(m_WaterCheck.position, m_WaterCheckRadius);
+        Gizmos.DrawWireSphere(m_HeadPosition.position, m_HeadSize);
     }
 }
