@@ -11,12 +11,14 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private Animator m_animator;               // Controls the dialogue animation
 
     private Queue<string> sentences;                            // These are the dialogue sentences that will be shown
+    private Queue<string> names;                                // In the event the dialogue has more than one conversant
 
-    private InteractibleDialogue[] interactibles;                         // Returns a list of all interactibles in the scene and disables interactions during a dialogue and re-enables after
+    private InteractibleDialogue[] interactibles;               // Returns a list of all interactibles in the scene and disables interactions during a dialogue and re-enables after
  
     // Start is called before the first frame update
     void Start()
     {
+        names = new Queue<string>();
         sentences = new Queue<string>();
         interactibles = FindObjectsOfType<InteractibleDialogue>();
 
@@ -37,7 +39,12 @@ public class DialogueManager : MonoBehaviour
         m_animator.SetBool("isTalking", true);
         // Start the conversation with the entity
         // Set the name for the character in the dialogue box
-        nameText.text = dialogue.name;
+        nameText.text = dialogue.name[0];
+        names.Clear();
+        foreach (string name in dialogue.name) 
+        {
+            names.Enqueue(name); 
+        }
         // This line clears any dialogue lines done previously.
         sentences.Clear();
         // We add our sentences into the queue
@@ -47,6 +54,7 @@ public class DialogueManager : MonoBehaviour
         }
         // This line displayes the first dialogue sentence.
         DisplayNextSentence();
+        Cursor.lockState = CursorLockMode.None;
     }
 
 
@@ -62,9 +70,25 @@ public class DialogueManager : MonoBehaviour
         // After displaying the sentence it dequeues the sentence from the Queue
         string sentence = sentences.Dequeue();
         dialogueText.text = sentence;
+        string name = names.Dequeue();
+        nameText.text = name;
+
+        StopAllCoroutines();
+        StartCoroutine(TypeSentence(sentence));
+        Cursor.lockState = CursorLockMode.None;
     }
 
-    void EndDialogue()
+    IEnumerator TypeSentence(string sentence)
+    {
+        dialogueText.text = "";
+        foreach(char letter in sentence.ToCharArray())
+        {
+            dialogueText.text += letter;
+            yield return null;
+        }
+    }
+
+    public void EndDialogue()
     {
         // On the end of the dialogue we hide the dialogue box on the UI
         m_animator.SetBool("isTalking", false);
@@ -78,5 +102,6 @@ public class DialogueManager : MonoBehaviour
         {
             interactible.enabled = true;
         }
+        Cursor.lockState = CursorLockMode.Locked;
     }
 }
