@@ -11,4 +11,12 @@ public class DialogueTrigger : MonoBehaviour
     public void TriggerDialogue() {
         FindObjectOfType<DialogueManager>().StartDialogue(dialogue);
     }
+
+    public void EndDialogue() {
+        FindObjectOfType<DialogueManager>().DisplayNextSentence();
+    }
+
+    public void DisplayNextLine() {
+        FindObjectOfType<DialogueManager>().EndDialogue();
+    }
 }
