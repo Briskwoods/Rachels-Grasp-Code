@@ -257,7 +257,7 @@ public class EnemyController : MonoBehaviour
                             playerHealth.TakeDamage(m_attackDamage);
 
                             // Knockback the player
-                            if (m_rigidbody.transform.position.x > m_target.position.x)
+                            if (m_rigidbody.transform.position.x > m_player.position.x)
                             {
                                 m_player.AddForce(transform.up * playerHealth.m_knockbackForceY + transform.right * (playerHealth.m_knockbackForceX));
                             }
