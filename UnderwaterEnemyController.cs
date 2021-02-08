@@ -12,10 +12,11 @@ public class UnderwaterEnemyController : MonoBehaviour
 
     [SerializeField] public float m_knockbackForceX = 100f;
     [SerializeField] public float m_knockbackForceY = 100f;
+    [SerializeField] private float m_stoppingDistance = 1f;             // Distance at which the enemy stops before the player.
 
     [SerializeField] private PlayerHealthManager playerHealth;          // For interactions with the player health manager
     
-    [SerializeField] private Transform m_enemy;                       // Used in flipping the enemy sprite when player is detected
+    [SerializeField] private Transform m_enemy;                         // Used in flipping the enemy sprite when player is detected
     [SerializeField] private Transform m_target;                        // Where we declare the player as the target for the enemy
     [SerializeField] private Transform m_wallDetection;                 // Detects the wall for enemy patrol.
     [SerializeField] private Transform m_playerInRange;                 // Range in which the enemy follows the player
@@ -102,16 +103,27 @@ public class UnderwaterEnemyController : MonoBehaviour
                         break;
                     case false:
                         // If patrolling is false then the enemy moves towards the player.
-                        transform.position = Vector2.MoveTowards(transform.position, m_target.position, m_moveSpeed * Time.deltaTime);
-                        switch (m_target.position.x > m_enemy.position.x)
+                        switch (Vector2.Distance(transform.position, m_target.position) > m_stoppingDistance)
                         {
                             case true:
-                                transform.eulerAngles = new Vector3(0, 0, 0);
-                                m_movingRight = true;
+                                // Moves enemy towards player if the distance to player is greater than 1
+                                // We use stopping distance to determine where the enemy stops to prevent them staying inside the player
+                                transform.position = Vector2.MoveTowards(transform.position, m_target.position, m_moveSpeed * Time.deltaTime);
+                                switch (m_target.position.x > m_enemy.position.x)
+                                {
+                                    case true:
+                                        transform.eulerAngles = new Vector3(0, 0, 0);
+                                        m_movingRight = true;
+                                        break;
+                                    case false:
+                                        transform.eulerAngles = new Vector3(0, -180, 0);
+                                        m_movingRight = false;
+                                        break;
+                                }
                                 break;
                             case false:
-                                transform.eulerAngles = new Vector3(0, -180, 0);
-                                m_movingRight = false;
+                                //Sets the enemy to stop in front of the player
+                                transform.Translate(Vector2.right * 0.1f * Time.deltaTime);
                                 break;
                         }
                         break;
@@ -123,5 +135,6 @@ public class UnderwaterEnemyController : MonoBehaviour
     {
         Gizmos.DrawWireSphere(m_playerInRange.position, m_playerDetectRadius);
         Gizmos.DrawWireSphere(m_wallDetection.position, m_wallCheckRadius);
+        Gizmos.DrawWireSphere(m_playerInRange.position, m_stoppingDistance);
     }
 }
