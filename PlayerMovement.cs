@@ -10,6 +10,15 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float nextAttackTime = 0f;
     [SerializeField] private float cooldownTime = 2f;
     [SerializeField] private float nextDashTime = 0f;
+ 
+    [SerializeField] private float m_WaterCheckRadius;
+    [SerializeField] private float m_HeadSize;
+
+    private float horizontalMove = 0f;
+    private float fallSpeed;
+
+    private float swimMove = 0f;
+    private float swimVertical = 0f;
     
     [SerializeField] private int  knockbackDamage = 10;
 
@@ -26,19 +35,11 @@ public class PlayerMovement : MonoBehaviour
 
     //[SerializeField] private AudioSource runSound;
     //[SerializeField] private AudioSource swimSound;
-
-    [SerializeField] private float m_WaterCheckRadius;
-    [SerializeField] private float m_HeadSize;
-
+ 
     [SerializeField] private LayerMask m_WaterLayer;
 
     [SerializeField] public bool isSwimming = false;
 
-    private float horizontalMove = 0f;
-    private float fallSpeed;
-
-    private float swimMove = 0f;
-    private float swimVertical = 0f;
 
     private bool bodySubmerged;
     public bool headSubmerged;
