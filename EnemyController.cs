@@ -299,6 +299,5 @@ public class EnemyController : MonoBehaviour
         }
         Gizmos.DrawWireSphere(m_attackPoint.position, m_attackRange);
         Gizmos.DrawWireSphere(m_wallDetection.position, m_wallCheckRadius);
-        Gizmos.DrawWireSphere(m_playerAttackRange.position, m_playerDetectRadius);
     }
 }
