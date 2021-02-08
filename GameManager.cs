@@ -6,23 +6,23 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
 
-    [SerializeField] private Transform underworldSpawnPoint;
-    [SerializeField] private Transform respawnPoint;
+    [SerializeField] private Transform underworldSpawnPoint;                  // Spawn point upon death
+    [SerializeField] private Transform respawnPoint;                          // Spawn point upon revival
 
-    [SerializeField] private GameObject RespawnGate;
+    [SerializeField] private GameObject RespawnGate;                          // Spawn Point Gate
 
-    [SerializeField] private PlayerHealthManager playerHealth;
+    [SerializeField] private PlayerHealthManager playerHealth;                // Sets the player health back to 100 upon revive
 
-    [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private PlayerMovement playerMovement;                   // Disables player movement accordingly
 
-    [SerializeField] private Rigidbody2D m_player;
+    [SerializeField] private Rigidbody2D m_player;                            // Used to move player between positions
 
-    [SerializeField] private Animator playerAnimator;
+    [SerializeField] private Animator playerAnimator;                         // Used in death animations
 
-    [SerializeField] private GameObject normalBackground;
-    [SerializeField] private GameObject deathBackground;
-    [SerializeField] private GameObject bgColour;
-    [SerializeField] private GameObject deathBgColour;
+    [SerializeField] private GameObject normalBackground;                     // Normal backgorund
+    [SerializeField] private GameObject deathBackground;                      // Background on death
+    [SerializeField] private GameObject bgColour;                             // Normal Background Colour
+    [SerializeField] private GameObject deathBgColour;                        // Background colour after death
     
     public Vector2 lastCheckpointPos;
 
@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour
 
 
     public void onDeath() {
+
         // Set Dark Forest BG to active and normal bg to inactive
         deathBgColour.SetActive(true);
         deathBackground.SetActive(true);
@@ -58,7 +59,6 @@ public class GameManager : MonoBehaviour
         StopCoroutine("timerBeforeRespawn");
         playerMovement.enabled = true;
         m_player.position = underworldSpawnPoint.position;
-
     }
 
     public void onRespawn()
@@ -72,13 +72,14 @@ public class GameManager : MonoBehaviour
         // Set player health back to maxHealth
         playerHealth.m_currentHealth = playerHealth.m_maxHealth;
         // Wait for a few seconds
+        playerMovement.enabled = false;
         StartCoroutine("timerBeforeRespawn");
         // Play spawn animation
 
         // Spawn Player in the "underworld"
         StopCoroutine("timerBeforeRespawn");
         playerMovement.enabled = true;
-        m_player.position = lastCheckpointPos;
+        m_player.position = lastCheckpointPos;        
     }
 
     // Used to load the next scene
@@ -99,6 +100,4 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(3f);
     }
-    
-
 }
