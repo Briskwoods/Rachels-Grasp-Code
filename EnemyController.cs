@@ -6,7 +6,7 @@ using UnityEngine;
 public class EnemyController : MonoBehaviour
 {
     [SerializeField] private int m_maxHealth = 100;                     // Enemy max health variable.
-    [SerializeField] private int m_currentHealth = 0;                   // Enemy current Health variable
+    [SerializeField] public int m_currentHealth = 0;                    // Enemy current Health variable
     [SerializeField] public int m_attackDamage = 0;                     // How much damage the enemy does to the player
 
     [SerializeField] private float m_attackRange = 0.5f;                // Enemy attack range.
