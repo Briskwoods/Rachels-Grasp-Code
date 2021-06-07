@@ -5,15 +5,15 @@ using UnityEngine.Playables;
 
 public class TriggerCutscene : MonoBehaviour
 {
-    [SerializeField] private PlayableDirector cutscene;
-    [SerializeField] private GameObject closingCutscene;
+    [SerializeField] private PlayableDirector m_cutsceneDirector;
+    [SerializeField] private GameObject m_cutscene;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player"))
         {
-            closingCutscene.SetActive(true);
-            cutscene.Play();
+            m_cutscene.SetActive(true);
+            m_cutsceneDirector.Play();
         }
     }
 }
