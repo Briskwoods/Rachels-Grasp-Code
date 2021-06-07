@@ -9,6 +9,7 @@ public class MenuController : MonoBehaviour
 
     [SerializeField] private GameObject pauseMenu;
     [SerializeField] private GameObject player;
+
     [SerializeField] private AudioSource music;
 
     [SerializeField] private PlayerHealthManager playerHealth;
@@ -71,7 +72,7 @@ public class MenuController : MonoBehaviour
         music.Pause();
     }
 
-    public void backToMainMenu()
+    public void BackToMainMenu()
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
@@ -80,22 +81,32 @@ public class MenuController : MonoBehaviour
 
     public void Save()
     {
-        SaveSystem.SavePlayer(playerHealth, manager, bodyPosition);
+        // To do Later, customised save system
+        //SaveSystem.SavePlayer(playerHealth, manager, bodyPosition);
+
+        PlayerPrefs.SetInt("Level", SceneManager.GetActiveScene().buildIndex);
+        PlayerPrefs.SetInt("Health", playerHealth.m_currentHealth);
+        PlayerPrefs.SetFloat("Last Checkpoint Positon X" , manager.lastCheckpointPos.x);
+        PlayerPrefs.SetFloat("Last Checkpoint Positon Y", manager.lastCheckpointPos.y);
     }
 
     public void Load()
     {
-        PlayerData data = SaveSystem.LoadPlayer();
+        // To do Later, customised load system
+        //PlayerData data = SaveSystem.LoadPlayer();
 
-        SceneManager.LoadScene(data.level);
-        playerHealth.m_currentHealth = data.health;
+        //SceneManager.LoadScene(data.level);
+        //playerHealth.m_currentHealth = data.health;
 
-        Vector3 position;
-        position.x = data.position[0];
-        position.y = data.position[1];
-        position.z = data.position[2];
+        //Vector3 position;
+        //position.x = data.position[0];
+        //position.y = data.position[1];
+        //position.z = data.position[2];
 
-        bodyPosition.transform.position = position;
+        //bodyPosition.transform.position = position;
 
+        SceneManager.LoadScene(PlayerPrefs.GetInt("Level"));
+        playerHealth.m_currentHealth = PlayerPrefs.GetInt("Health");
+        bodyPosition.position = new Vector2(PlayerPrefs.GetFloat("Last Checkpoint Positon X"), PlayerPrefs.GetFloat("Last Checkpoint Positon Y"));
     }
 }
