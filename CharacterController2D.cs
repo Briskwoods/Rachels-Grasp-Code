@@ -3,44 +3,46 @@ using UnityEngine.Events;
 
 public class CharacterController2D : MonoBehaviour
 {
-	[SerializeField] public int m_attackDamage = 40;							// How much damage each attack deals
+	[SerializeField] public int m_attackDamage = 40;							    // How much damage each attack deals
+																				    
+	[SerializeField] private float m_attackRange = 0.5f;                            // Used to set the weapon attack range
+	[SerializeField] private float m_Distance = 0.4f;                               // Raycast distance to check for wall.
+	[SerializeField] private float m_SlideSpeed = -3f ;                             // Wall Slide Speed.
+	[SerializeField] private float m_JumpForce = 400f;							    // Amount of force added when the player jumps.
+	[SerializeField] private float m_dashSpeed;                                     // Speed to multiply movement by for dash.
+	[SerializeField] private float m_underwaterDashSpeed;						    // Underwater Dash speed
+	[SerializeField] private float m_crouchDashSpeed = 300f;                        // Speed to multiply movement by for crouch dash.
+	[SerializeField] private float m_normalDashSpeed;                               // Used to set the dash speed variable back to normal after crouch dash(roll)
+	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			    // Amount of maxSpeed applied to crouching movement. 1 = 100%
+	[Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;      // How much to smooth out the movement
+	[Range(0, .3f)] [SerializeField] private float m_DashMovementSmoothing = .05f;  // How much to smooth out the movement
 
-	[SerializeField] private float m_attackRange = 0.5f;                        // Used to set the weapon attack range
-	[SerializeField] private float m_Distance = 0.4f;                           // Raycast distance to check for wall.
-	[SerializeField] private float m_SlideSpeed = -3f ;                         // Wall Slide Speed.
-	[SerializeField] private float m_JumpForce = 400f;							// Amount of force added when the player jumps.
-	[SerializeField] private float m_dashSpeed;                                 // Speed to multiply movement by for dash.
-	[SerializeField] private float m_underwaterDashSpeed;						// Underwater Dash speed
-	[SerializeField] private float m_crouchDashSpeed = 300f;                    // Speed to multiply movement by for crouch dash.
-	[SerializeField] private float m_normalDashSpeed;                           // Used to set the dash speed variable back to normal after crouch dash(roll)
-	[Range(0, 1)] [SerializeField] private float m_CrouchSpeed = .36f;			// Amount of maxSpeed applied to crouching movement. 1 = 100%
-	[Range(0, .3f)] [SerializeField] private float m_MovementSmoothing = .05f;  // How much to smooth out the movement
 	
-	[SerializeField] private bool m_AirControl = false;							// Whether or not a player can steer while jumping;
+	[SerializeField] private bool m_AirControl = false;								// Whether or not a player can steer while jumping;
 	
-	[SerializeField] private LayerMask m_WhatIsGround;							// A mask determining what is ground to the character
-	[SerializeField] private LayerMask m_EnemyLayers;			                // Used in detecting enemies
+	[SerializeField] private LayerMask m_WhatIsGround;								// A mask determining what is ground to the character
+	[SerializeField] private LayerMask m_EnemyLayers;								// Used in detecting enemies
 	
-	[SerializeField] private Transform m_GroundCheck;							// A position marking where to check if the player is grounded.
-	[SerializeField] private Transform m_CeilingCheck;                          // A position marking where to check for ceilings
-	[SerializeField] private Transform m_WallCheck;                             // A position marking where to check if the player is near a wall.
-	[SerializeField] private Transform m_LedgeCheck;                            // A position marking where to check if the player is near a ledge.
-	[SerializeField] private Transform m_AttackPoint;                           // A position marking where the player attacks land.
+	[SerializeField] private Transform m_GroundCheck;								// A position marking where to check if the player is grounded.
+	[SerializeField] private Transform m_CeilingCheck;								// A position marking where to check for ceilings
+	[SerializeField] private Transform m_WallCheck;									// A position marking where to check if the player is near a wall.
+	[SerializeField] private Transform m_LedgeCheck;								// A position marking where to check if the player is near a ledge.
+	[SerializeField] private Transform m_AttackPoint;								// A position marking where the player attacks land.
 	
-	[SerializeField] private Collider2D m_CrouchDisableCollider;                // A collider that will be disabled when crouching
+	[SerializeField] private Collider2D m_CrouchDisableCollider;					// A collider that will be disabled when crouching
 
-	public Animator animator;                                                   //Used in animating the wall slide functionality	
-	public SpriteRenderer spriteRenderer;										//Used in flipping the sprite for the wall slide animation
+	public Animator animator;														//Used in animating the wall slide functionality	
+	public SpriteRenderer spriteRenderer;											//Used in flipping the sprite for the wall slide animation
 
 
-	const float k_GroundedRadius = .2f; // Radius of the overlap circle to determine if grounded
-	private bool m_Grounded;			// Whether or not the player is grounded.
-	const float k_CeilingRadius = .2f;	// Radius of the overlap circle to determine if the player can stand up
+	const float k_GroundedRadius = .2f;												// Radius of the overlap circle to determine if grounded
+	private bool m_Grounded;														// Whether or not the player is grounded.
+	const float k_CeilingRadius = .2f;												// Radius of the overlap circle to determine if the player can stand up
 	private Rigidbody2D m_Rigidbody2D;
-	private bool m_FacingRight = true;  // For determining which way the player is currently facing.
+	private bool m_FacingRight = true;												// For determining which way the player is currently facing.
 	private Vector3 m_Velocity = Vector3.zero;
-	//private bool m_isNearLedge;		//To Be added later as it is an extra feature. This feature is the ledge grab mechanism. For now lets get everything else working
-	private bool m_isNearWall;			//For Determining if the player is next to a wall or not. 
+	//private bool m_isNearLedge;													//To Be added later as it is an extra feature. This feature is the ledge grab mechanism. For now lets get everything else working
+	private bool m_isNearWall;														//For Determining if the player is next to a wall or not. 
 
 	[Header("Events")]
 	[Space]
