@@ -32,9 +32,6 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] private Transform m_WaterCheck;
     [SerializeField] private Transform m_HeadPosition;
-
-    //[SerializeField] private AudioSource runSound;
-    //[SerializeField] private AudioSource swimSound;
  
     [SerializeField] private LayerMask m_WaterLayer;
 
@@ -68,16 +65,7 @@ public class PlayerMovement : MonoBehaviour
                 // Fall Animation Handler
                 fallSpeed = player.velocity.y;
                 animator.SetFloat("FallSpeed", fallSpeed);
-                //switch (horizontalMove != 0)
-                //{
-                //    case true:
-                //        runSound.Play();
-                //        break;
-                //    case false:
-                //        runSound.Stop();
-                //        break;
-                //}
-
+                
                 if (fallSpeed <= -2f)
                 {
                     animator.SetBool("isFalling", true);
@@ -143,15 +131,7 @@ public class PlayerMovement : MonoBehaviour
                 // Swim Movement Horizontal
                 swimMove = Input.GetAxis("Horizontal") * swimSpeed;
                 animator.SetFloat("Speed", Mathf.Abs(swimMove));
-                //switch (swimMove != 0 || swimVertical !=0)
-                //{
-                //    case true:
-                //        swimSound.Play();
-                //        break;
-                //    case false:
-                //        swimSound.Stop();
-                //        break;
-                //}
+               
                 // Swim Movement Vertical 
                 swimVertical = Input.GetAxis("Vertical") * swimSpeed;
                 animator.SetFloat("VerticalSpeed", swimVertical);
