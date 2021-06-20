@@ -3,7 +3,7 @@ using UnityEngine.Events;
 
 public class CharacterController2D : MonoBehaviour
 {
-	[SerializeField] public int m_attackDamage = 40;							    // How much damage each attack deals
+	public int m_attackDamage = 40;													// How much damage each attack deals
 																				    
 	[SerializeField] private float m_attackRange = 0.5f;                            // Used to set the weapon attack range
 	[SerializeField] private float m_Distance = 0.4f;                               // Raycast distance to check for wall.
@@ -90,7 +90,7 @@ public class CharacterController2D : MonoBehaviour
 		Physics2D.queriesStartInColliders = false;
 		//We use a raycast to detect the presence of a wall and if found we can perform a wall slide function.
 		m_isNearWall = Physics2D.Raycast(m_WallCheck.position, Vector2.right * transform.localScale.x, m_Distance);
-		Debug.DrawRay(m_WallCheck.position, Vector2.right * transform.localScale.x * m_Distance, new Color(1f, 1f, 1f));
+		Debug.DrawRay(m_WallCheck.position, m_Distance * transform.localScale.x * Vector2.right, new Color(1f, 1f, 1f));
 
 
 		//This raycast detects if we are near a ledge and sets the m_isNearLedge bool to true if it detects a ledge.
@@ -199,7 +199,7 @@ public class CharacterController2D : MonoBehaviour
 			// Dash the character by finding the target velocity
 			Vector3 targetVelocity = new Vector2(move * m_dashSpeed, m_Rigidbody2D.velocity.x);
 			// And then smoothing it out and applying it to the character
-			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_MovementSmoothing);
+			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, targetVelocity, ref m_Velocity, m_DashMovementSmoothing);
 		}
 		animator.SetFloat("DashSpeed", Mathf.Abs(m_Rigidbody2D.velocity.x));
         //if the Player should attack
@@ -254,7 +254,7 @@ public class CharacterController2D : MonoBehaviour
 			// Dash the character by finding the target velocity
 			Vector3 dashVelocity = new Vector2(horizontalMove * m_underwaterDashSpeed, m_Rigidbody2D.velocity.x);
 			// And then smoothing it out and applying it to the character
-			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, dashVelocity, ref m_Velocity, m_MovementSmoothing);
+			m_Rigidbody2D.velocity = Vector3.SmoothDamp(m_Rigidbody2D.velocity, dashVelocity, ref m_Velocity, m_DashMovementSmoothing);
 		}
 		animator.SetFloat("DashSpeed", Mathf.Abs(m_Rigidbody2D.velocity.x));
 
