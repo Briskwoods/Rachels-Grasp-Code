@@ -35,7 +35,7 @@ public class PlayerMovement : MonoBehaviour
  
     [SerializeField] private LayerMask m_WaterLayer;
 
-    [SerializeField] public bool isSwimming = false;
+    public bool isSwimming = false;
 
 
     private bool bodySubmerged;
