@@ -5,31 +5,31 @@ using UnityEngine.UI;
 
 public class PlayerHealthManager : MonoBehaviour
 {
-    [Range(0, 100)][SerializeField] public int m_maxHealth = 100;       // Player max health variable.
-    [SerializeField] public int m_currentHealth = 0;                    // Player current Health variable
-    [SerializeField] public int m_drownDamage = 5;                      // Damage to the player when drowning
+    [Range(0, 100)] public int m_maxHealth = 100;                        // Player max health variable.
+    public int m_currentHealth = 0;                                      // Player current Health variable
+    public int m_drownDamage = 5;                                        // Damage to the player when drowning
 
 
-    [SerializeField] public float m_knockbackForceX = 0;                // Amount of Force th player is knocked back with on the X axis
-    [SerializeField] public float m_knockbackForceY = 0;                // Amount of force the player is knocked back wih on the Y axis
-    [Range(0, 30)][SerializeField] public float m_holdBreath = 30f;    // How long the player can hold their breath.
+    public float m_knockbackForceX = 0;                                  // Amount of Force th player is knocked back with on the X axis
+    public float m_knockbackForceY = 0;                                  // Amount of force the player is knocked back wih on the Y axis
+    [Range(0, 30)] public float m_holdBreath = 30f;                      // How long the player can hold their breath.
 
     [SerializeField] private GameManager gameManager;
 
     [SerializeField] private PlayerMovement playerMovement;
 
-    [SerializeField] private Transform m_respawnPoint;                  // "Underworld" respawn point
-
-    [SerializeField] private Animator m_animator;                       // Player animation controller   
-
-    [SerializeField] private Rigidbody2D m_player;                      // Player Rigidbody
-
-    [SerializeField] public int m_invunerability = 0;                   // Sets player vunerability state, used to prevent damage whenn vunerable
-
-    private Renderer rend;                                              // Sprite Renderer, used in changing player trancparency on damage
-    private Color C;                                                    // Sets player character to red upon damage
-
-    private bool m_canBreath;                                           // Detects if player is in a position to breathe or not
+    [SerializeField] private Transform m_respawnPoint;                   // "Underworld" respawn point
+                                                                         
+    [SerializeField] private Animator m_animator;                        // Player animation controller   
+                                                                         
+    [SerializeField] private Rigidbody2D m_player;                       // Player Rigidbody
+                                                                         
+    public int m_invunerability = 0;                                     // Sets player vunerability state, used to prevent damage whenn vunerable
+                                                                         
+    private Renderer rend;                                               // Sprite Renderer, used in changing player trancparency on damage
+    private Color C;                                                     // Sets player character to red upon damage
+                                                                         
+    private bool m_canBreath;                                            // Detects if player is in a position to breathe or not
 
     [SerializeField] private Image healthBar;
     [SerializeField] private Image breathBar;
@@ -122,7 +122,7 @@ public class PlayerHealthManager : MonoBehaviour
     }
 
     // Resets player invunerability
-    public void resetInvulnerability()
+    public void ResetInvulnerability()
     {
         m_invunerability = 0;
         Physics2D.IgnoreLayerCollision(10, 8, false);
