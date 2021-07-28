@@ -7,6 +7,7 @@ public class CharacterController2D : MonoBehaviour
 																				    
 	[SerializeField] private float m_attackRange = 0.5f;                            // Used to set the weapon attack range
 	[SerializeField] private float m_Distance = 0.4f;                               // Raycast distance to check for wall.
+	[SerializeField] private float m_groundCheckDistance = 1f;						// Raycast distance to check if player in near a ledge
 	[SerializeField] private float m_SlideSpeed = -3f ;                             // Wall Slide Speed.
 	[SerializeField] private float m_JumpForce = 400f;							    // Amount of force added when the player jumps.
 	[SerializeField] private float m_dashSpeed;                                     // Speed to multiply movement by for dash.
@@ -35,14 +36,19 @@ public class CharacterController2D : MonoBehaviour
 	public SpriteRenderer spriteRenderer;											//Used in flipping the sprite for the wall slide animation
 
 
-	const float k_GroundedRadius = .2f;												// Radius of the overlap circle to determine if grounded
-	private bool m_Grounded;														// Whether or not the player is grounded.
-	const float k_CeilingRadius = .2f;												// Radius of the overlap circle to determine if the player can stand up
 	private Rigidbody2D m_Rigidbody2D;
-	private bool m_FacingRight = true;												// For determining which way the player is currently facing.
+	
 	private Vector3 m_Velocity = Vector3.zero;
-	//private bool m_isNearLedge;													//To Be added later as it is an extra feature. This feature is the ledge grab mechanism. For now lets get everything else working
-	private bool m_isNearWall;														//For Determining if the player is next to a wall or not. 
+	
+	const float k_GroundedRadius = .2f;												// Radius of the overlap circle to determine if grounded
+	const float k_CeilingRadius = .2f;												// Radius of the overlap circle to determine if the player can stand up
+	
+	private bool m_FacingRight = true;												// For determining which way the player is currently facing.
+	private bool m_Grounded;                                                        // Whether or not the player is grounded.
+
+	public bool m_isNearLedge;                                                      // Used in detecting ledges, can be used for a ledge grab  but is currently in use for camera controls.
+	public bool m_isWallSliding;													// Used to control changes in camera offset when player is wall sliding, can also be used to wall jump when player is wall sliding		
+	private bool m_isNearWall;														// For Determining if the player is next to a wall or not. 
 
 	[Header("Events")]
 	[Space]
@@ -94,18 +100,32 @@ public class CharacterController2D : MonoBehaviour
 
 
 		//This raycast detects if we are near a ledge and sets the m_isNearLedge bool to true if it detects a ledge.
-		//m_isNearLedge = Physics2D.Raycast(m_LedgeCheck.position, Vector2.right*transform.localScale.x, m_Distance);
-
-		if (!m_Grounded && m_isNearWall && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
-		{
-			animator.SetBool("isWallSliding",true);
-			m_Rigidbody2D.velocity = new Vector2(0, m_SlideSpeed);
-			spriteRenderer.flipX = true;
-		}
-        else
+		RaycastHit2D m_groundInfo = Physics2D.Raycast(m_LedgeCheck.position, Vector2.down, m_groundCheckDistance);
+		Debug.DrawRay(m_LedgeCheck.position, Vector2.down * transform.localScale.x * m_groundCheckDistance, new Color(1f, 1f, 1f));
+		switch (!m_groundInfo)
         {
-			animator.SetBool("isWallSliding", false);
-			spriteRenderer.flipX = false;
+			case true:
+				m_isNearLedge = true;
+				break;
+			case false:
+				m_isNearLedge = false;
+				break;
+        }
+
+
+		switch(!m_Grounded && m_isNearWall && GetComponent<Rigidbody2D>().velocity.y < m_SlideSpeed)
+		{
+			case true:
+				animator.SetBool("isWallSliding",true);
+				m_isWallSliding = true;
+				m_Rigidbody2D.velocity = new Vector2(0, m_SlideSpeed);
+				spriteRenderer.flipX = true;
+				break;
+			case false:
+				animator.SetBool("isWallSliding", false);
+				m_isWallSliding = false;
+				spriteRenderer.flipX = false;
+				break;
 		}
 		//We use raycasts again to detect to presence of a ledge in order to perform a ledge graab functionality.
 		//Ledge grab fn code
@@ -141,7 +161,8 @@ public class CharacterController2D : MonoBehaviour
 			if (crouch)
 			{
 				//m_Rigidbody2D.mass = 0.651302f; 
-				m_dashSpeed = m_crouchDashSpeed;
+				// Crouch Jump enabler ^
+				m_dashSpeed = m_crouchDashSpeed/2;
 				if (!m_wasCrouching)
 				{
 					m_wasCrouching = true;
