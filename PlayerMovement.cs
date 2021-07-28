@@ -37,7 +37,6 @@ public class PlayerMovement : MonoBehaviour
 
     public bool isSwimming = false;
 
-
     private bool bodySubmerged;
     public bool headSubmerged;
 
@@ -45,6 +44,8 @@ public class PlayerMovement : MonoBehaviour
     bool crouch = false;
     bool dash = false;
     bool attack = false;
+
+    public bool m_isCrouching;                                                      // Used to control camera movement when player is crouching
 
     void Start()
     {
@@ -88,10 +89,12 @@ public class PlayerMovement : MonoBehaviour
                 if (Input.GetButtonDown("Crouch"))
                 {
                     crouch = true;
+                    m_isCrouching = true;
                 }
                 else if (Input.GetButtonUp("Crouch"))
                 {
                     crouch = false;
+                    m_isCrouching = false;
                 }
                 // Dash Ability
                 if (Input.GetButtonDown("Dash"))
