@@ -14,7 +14,7 @@ public class CameraController : MonoBehaviour
 
 
     //[SerializeField] private CharacterController2D m_player;
-    //[SerializeField] private PlayerMovement m_controller;
+    [SerializeField] private PlayerMovement m_controller;
 
     private void Start()
     {
@@ -24,7 +24,7 @@ public class CameraController : MonoBehaviour
 
     private void Update()
     {
-       switch (m_brain.IsBlending /*&& !m_controller.m_isCrouching*/)
+       switch (m_brain.IsBlending && !m_controller.m_isCrouching)
         {
             case true:
                 m_playerInput.enabled = false;
